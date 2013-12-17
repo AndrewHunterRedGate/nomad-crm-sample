@@ -5,11 +5,17 @@
 
 var syncDataModel = (function (window) {
 
-    var result = {};
+    var dataModelInterface = {};
 
     // Open the database
     // Is the fixed size going to be a problem?
     var db = window.openDatabase('syncdata', '1.0', 'Sync Data', 1000000);
+
+    // Flag set once the database is ready
+    var dbReady = false;
+    
+    // Callback once the database is ready
+    var onReady = function () { };
 
     // Creates the data storage layer
     function createDatabase(tx) {
@@ -47,11 +53,75 @@ var syncDataModel = (function (window) {
     
     // Database has been created and is now available
     function creationSucceeded() {
+        dbReady = true;
+
+        var finishOnReady = onReady;
+        onReady = function () { };
+        finishOnReady();
+    }
+    
+    // Updates a customer in the data model
+    function updateCustomer(customer, modified, callback) {
+        if (!dbReady) {
+            // Wait for DB if not ready yet
+            var oldOnReady = onReady;
+
+            onReady = function () {
+                // Chain calls
+                oldOnReady();
+
+                // Restart this operation
+                updateCustomer(customer, modified, callback);
+            };
+
+            // Stop
+            return;
+        }
+    }
+    
+    // Retrieves a customer in the data model and provides the data to a callback
+    function retrieveCustomer(customerId, callback) {
+        if (!dbReady) {
+            // Wait for DB if not ready yet
+            var oldOnReady = onReady;
+
+            onReady = function () {
+                // Chain calls
+                oldOnReady();
+
+                // Restart this operation
+                retrieveCustomer(customerId, callback);
+            };
+
+            // Stop
+            return;
+        }
+        
+        // Try to retrieve the customer
+        db.transaction(function(tx) {
+            tx.executeSql("SELECT * FROM customers WHERE customerId = ?", [customerId],
+                function(tx2, result) {
+                    if (result.rows.length <= 0) {
+                        // null result if the customer doesn't exist
+                        if (callback) {
+                            callback(null);
+                        }
+                    } else {
+                        // Found the customer
+                        var customerRow = result.rows.item(0);
+                        var customerJson = customerRow.customer_json;
+                        
+                        if (callback) {
+                            callback(customerJson);
+                        }
+                    }
+                });
+        });
     }
 
     db.transaction(createDatabaseIfNeeded, creationFailed, creationSucceeded);
 
     // Create the external interface
-    return result;
+    return dataModelInterface;
 
 })(window);
