@@ -77,6 +77,18 @@ var syncDataModel = (function (window) {
             // Stop
             return;
         }
+        
+        // Serialise the customer
+        var customerJson = JSON.stringify(customer);
+
+        // Try to update the customer
+        db.transaction(function(tx) {
+            tx.executeSql("INSERT OR REPLACE INTO customers (?, ?, ?)", [customer.CustomerId, customerJson, modified], function() {
+                if (callback) {
+                    callback();
+                }
+            });
+        });
     }
     
     // Retrieves a customer in the data model and provides the data to a callback
@@ -108,11 +120,11 @@ var syncDataModel = (function (window) {
                         }
                     } else {
                         // Found the customer
-                        var customerRow = result.rows.item(0);
-                        var customerJson = customerRow.customer_json;
+                        var customerRow     = result.rows.item(0);
+                        var customerJson    = customerRow.customer_json;
                         
                         if (callback) {
-                            callback(customerJson);
+                            callback(JSON.parse(customerJson));
                         }
                     }
                 });
@@ -122,6 +134,9 @@ var syncDataModel = (function (window) {
     db.transaction(createDatabaseIfNeeded, creationFailed, creationSucceeded);
 
     // Create the external interface
+    dataModelInterface.retrieve = retrieveCustomer;
+    dataModelInterface.update   = updateCustomer;
+
     return dataModelInterface;
 
 })(window);
