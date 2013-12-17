@@ -13,6 +13,8 @@ var syncDataModel = (function (window) {
 
     // Creates the data storage layer
     function createDatabase(tx) {
+        console.log('Creating new sync database')
+
         tx.executeSql("CREATE TABLE customers " +
             "( customer_id INT primary key" +
             ", customer_json TEXT " +
@@ -26,27 +28,28 @@ var syncDataModel = (function (window) {
     // Creates the database if it doesn't already exist
     function createDatabaseIfNeeded(tx) {
         // Create the database if the customers row does not exist
-        tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name='customers'", 
+        tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name='customers'",
+            null,
             function(tx2, result) {
                  if (result.rows.length == 0) {
                      createDatabase(tx2);
+                 } else {
+                     console.log('Sync database already exists');
                  }
             });
     }
     
     // Relays DB creation failures to the user
     function creationFailed(err) {
-        alert('Could not create database: ' + err.code);
+        alert('Could not create database: ' + err.message);
         console.log(err);
     }
     
     // Database has been created and is now available
     function creationSucceeded() {
-        alert('ok db');
     }
 
     db.transaction(createDatabaseIfNeeded, creationFailed, creationSucceeded);
-    console.log('hello');
 
     // Create the external interface
     return result;
