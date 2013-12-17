@@ -9,7 +9,10 @@ function onDeviceReady(deviceObject) {
     applyStyle(deviceStyleToEnable);  
 }
 
-var getDeviceStyle = function(deviceObject) {
+var getDeviceStyle = function (deviceObject) {
+    if (!deviceObject) return 'unknown';
+    if (!deviceObject.platform) return 'unknown';
+
     var thePlatform = deviceObject.platform.toLowerCase();
     if (thePlatform.indexOf("iphone") > -1 ||
         thePlatform.indexOf("ipad") > -1) {
