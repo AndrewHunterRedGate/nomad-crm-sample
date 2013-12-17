@@ -10,6 +10,7 @@
     <Name>Client</Name>
     <RootNamespace>Client</RootNamespace>
     <LastBuildVersion>1.0.0</LastBuildVersion>
+    <Permissions>android.permission.ACCESS_FINE_LOCATION,android.permission.ACCESS_COARSE_LOCATION,android.permission.ACCESS_LOCATION_EXTRA_COMMANDS,android.permission.RECEIVE_SMS,android.permission.READ_PHONE_STATE,android.permission.ACCESS_NETWORK_STATE,android.permission.INTERNET,android.permission.READ_CONTACTS,android.permission.WRITE_CONTACTS,android.permission.RECORD_AUDIO,android.permission.CAMERA,android.permission.WRITE_EXTERNAL_STORAGE,android.permission.GET_ACCOUNTS,android.permission.VIBRATE,android.permission.MODIFY_AUDIO_SETTINGS,android.permission.BROADCAST_STICKY</Permissions>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -44,6 +45,12 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="scripts\PageStateManager.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="scripts\SyncDataModel.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="scripts\SyncUtils.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="scripts\ThemeSelector.js">
