@@ -19,7 +19,7 @@ var syncDataModel = (function (window) {
 
     // Creates the data storage layer
     function createDatabase(tx) {
-        console.log('Creating new sync database')
+        console.log('Creating new sync database');
 
         tx.executeSql("CREATE TABLE customers " +
             "( customer_id INT primary key" +
@@ -80,6 +80,13 @@ var syncDataModel = (function (window) {
         
         // Serialise the customer
         var customerJson = JSON.stringify(customer);
+        
+        // Change the 'modified' value to 0 or 1 for database storage
+        if (modified) {
+            modified = 1;
+        } else {
+            modified = 0;
+        }
 
         // Try to update the customer
         db.transaction(function(tx) {
@@ -111,7 +118,7 @@ var syncDataModel = (function (window) {
         
         // Try to retrieve the customer
         db.transaction(function(tx) {
-            tx.executeSql("SELECT * FROM customers WHERE customerId = ?", [customerId],
+            tx.executeSql("SELECT customer_json FROM customers WHERE customerId = ?", [customerId],
                 function(tx2, result) {
                     if (result.rows.length <= 0) {
                         // null result if the customer doesn't exist
@@ -131,11 +138,51 @@ var syncDataModel = (function (window) {
         });
     }
 
+    // Turns a list of customers into an array and sends the array to a callback
+    function formatCustomerList(dbResult, callback) {
+        if (!callback) {
+            return;
+        }
+
+        var numRows         = dbResult.rows.length;
+        var customerList    = [];
+        
+        for (var rowId = 0; rowId < numRows; ++rowId) {
+            var rowJson = dbResult.rows.item(0).customer_json;
+            var rowData = JSON.parse(rowJson);
+            customerList.push(rowData);
+        }
+
+        callback(customerList);
+    }
+    
+    // Retrieves the entire list of customers in the data model and provides the data to a callback
+    function retrieveCustomerList(callback) {
+        db.transaction(function(tx) {
+            tx.executeSql("SELECT customer_json FROM customers", [],
+                function(tx2, result) {
+                    formatCustomerList(result, callback);
+                });
+        });
+    }
+    
+    // Retrieves the list of modified customers
+    function retrieveModifiedCustomers(callback) {
+        db.transaction(function (tx) {
+            tx.executeSql("SELECT customer_json FROM customers WHERE modified <> 0", [],
+                function (tx2, result) {
+                    formatCustomerList(result, callback);
+                });
+        });
+    }
+
     db.transaction(createDatabaseIfNeeded, creationFailed, creationSucceeded);
 
     // Create the external interface
-    dataModelInterface.retrieve = retrieveCustomer;
-    dataModelInterface.update   = updateCustomer;
+    dataModelInterface.retrieve         = retrieveCustomer;
+    dataModelInterface.update           = updateCustomer;
+    dataModelInterface.retrieveAll      = retrieveCustomerList;
+    dataModelInterface.retrieveModified = retrieveModifiedCustomers;
 
     return dataModelInterface;
 
