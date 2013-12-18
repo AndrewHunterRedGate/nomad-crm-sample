@@ -175,6 +175,19 @@ var syncDataModel = (function (window) {
                 });
         });
     }
+    
+    // Changes the modification flag for the specified customer ID 
+    function changeModified(customerId, modified) {
+        if (modified) {
+            modified = 1;
+        } else {
+            modified = 0;
+        }
+
+        db.transaction(function(tx) {
+            tx.executeSql("UPDATE customers SET modified = ? WHERE customer_id = ?", [modified, customerId]);
+        });
+    }
 
     db.transaction(createDatabaseIfNeeded, creationFailed, creationSucceeded);
 
@@ -183,6 +196,7 @@ var syncDataModel = (function (window) {
     dataModelInterface.update           = updateCustomer;
     dataModelInterface.retrieveAll      = retrieveCustomerList;
     dataModelInterface.retrieveModified = retrieveModifiedCustomers;
+    dataModelInterface.changeModified   = changeModified;
 
     return dataModelInterface;
 
