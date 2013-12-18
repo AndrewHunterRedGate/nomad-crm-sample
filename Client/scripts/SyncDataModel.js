@@ -90,7 +90,7 @@ var syncDataModel = (function (window) {
 
         // Try to update the customer
         db.transaction(function(tx) {
-            tx.executeSql("INSERT OR REPLACE INTO customers (?, ?, ?)", [customer.CustomerId, customerJson, modified], function() {
+            tx.executeSql("INSERT OR REPLACE INTO customers (customer_id, customer_json, modified) VALUES (?, ?, ?)", [customer.CustomerId, customerJson, modified], function(tx2, result) {
                 if (callback) {
                     callback();
                 }
